@@ -1,0 +1,187 @@
+import { useEffect, useRef } from 'react';
+import { useSettings } from '../settingsStore.js';
+
+export default function BackgroundEffects() {
+  const canvasRef = useRef(null);
+  const { settings } = useSettings();
+  const theme = settings.theme || 'theme-classic';
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    
+    const handleResize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    let particles = [];
+    let time = 0;
+
+    // Initialize state based on theme
+    const countMap = {
+      'theme-classic': 60, // Embers
+      'theme-christmas': 150, // Snow
+      'theme-halloween': 40, // Fog orbs
+      'theme-stpatricks': 80, // Gold dust
+      'theme-july4th': 100, // Sparks
+      'theme-thanksgiving': 50, // Leaves
+      'theme-dark': 150, // Stars
+      'theme-blue': 80, // Stars
+      'theme-cyberpunk': 0 // Handled by grid
+    };
+
+    const count = countMap[theme] || 0;
+    
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: Math.random() * 3 + 1,
+        vx: (Math.random() - 0.5) * 1,
+        vy: (Math.random() - 0.5) * 1,
+        alpha: Math.random() * 0.8 + 0.1,
+        life: Math.random() * 100,
+        colorType: Math.random() // Used for multi-color themes
+      });
+    }
+
+    const render = () => {
+      time += 0.01;
+      ctx.clearRect(0, 0, width, height);
+
+      if (theme === 'theme-cyberpunk') {
+        ctx.strokeStyle = 'rgba(224, 64, 251, 0.1)';
+        ctx.lineWidth = 1.5;
+        const gridSize = 50;
+        const offset = (time * 30) % gridSize;
+        
+        ctx.beginPath();
+        for (let x = 0; x < width; x += gridSize) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+        }
+        for (let y = offset; y < height; y += gridSize) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+        }
+        ctx.stroke();
+      } 
+      else if (count > 0) {
+        particles.forEach(p => {
+          let fillStyle = '';
+          
+          if (theme === 'theme-classic') {
+            // Rising embers
+            p.y -= Math.abs(p.vy) + 0.5;
+            p.x += Math.sin(time + p.life) * 0.5;
+            if (p.y < -10) { p.y = height + 10; p.x = Math.random() * width; }
+            fillStyle = `rgba(255, ${100 + p.colorType * 100}, 50, ${p.alpha})`;
+          }
+          else if (theme === 'theme-christmas') {
+            // Falling snow
+            p.y += Math.abs(p.vy) + 0.5;
+            p.x += Math.sin(time * 0.5 + p.life) * 0.5;
+            if (p.y > height + 10) { p.y = -10; p.x = Math.random() * width; }
+            fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+          }
+          else if (theme === 'theme-halloween') {
+            // Drifting fog orbs
+            p.x += p.vx * 0.5;
+            p.y += p.vy * 0.2;
+            if (p.x < -50) p.x = width + 50;
+            if (p.x > width + 50) p.x = -50;
+            if (p.y < -50) p.y = height + 50;
+            if (p.y > height + 50) p.y = -50;
+            const currentAlpha = p.alpha * (Math.sin(time + p.life) * 0.5 + 0.5) * 0.3;
+            fillStyle = `rgba(${p.colorType > 0.5 ? '176, 38, 255' : '230, 92, 0'}, ${currentAlpha})`;
+            p.radius = 10 + p.colorType * 40; // Large foggy orbs
+          }
+          else if (theme === 'theme-stpatricks') {
+            // Drifting gold dust
+            p.y -= Math.abs(p.vy) * 0.5 + 0.2;
+            p.x += Math.sin(time * 2 + p.life) * 0.5;
+            if (p.y < -10) { p.y = height + 10; p.x = Math.random() * width; }
+            fillStyle = `rgba(255, 214, 0, ${p.alpha * (Math.sin(time * 3 + p.life) * 0.5 + 0.5)})`;
+          }
+          else if (theme === 'theme-july4th') {
+            // Floating sparks (Red/White/Blue)
+            p.y -= Math.abs(p.vy) + 0.5;
+            p.x += Math.sin(time * 3 + p.life) * 0.5;
+            if (p.y < -10) { p.y = height + 10; p.x = Math.random() * width; }
+            const rwb = p.colorType < 0.33 ? '255, 50, 50' : p.colorType < 0.66 ? '255, 255, 255' : '50, 100, 255';
+            fillStyle = `rgba(${rwb}, ${p.alpha})`;
+          }
+          else if (theme === 'theme-thanksgiving') {
+            // Falling leaves
+            p.y += Math.abs(p.vy) + 0.5;
+            p.x += Math.sin(time + p.life) * 1.5;
+            if (p.y > height + 10) { p.y = -10; p.x = Math.random() * width; }
+            const colors = ['191, 87, 0', '240, 165, 0', '90, 40, 10'];
+            const leafColor = colors[Math.floor(p.colorType * colors.length)];
+            fillStyle = `rgba(${leafColor}, ${p.alpha})`;
+            // Leaves flip as they fall (simulate by altering radius width)
+            p.currentRadius = p.radius * Math.abs(Math.sin(time * 2 + p.life));
+          }
+          else {
+            // Default dark/blue stars
+            p.x += p.vx * 0.2;
+            p.y += p.vy * 0.2;
+            if (p.x < 0) p.x = width;
+            if (p.x > width) p.x = 0;
+            if (p.y < 0) p.y = height;
+            if (p.y > height) p.y = 0;
+            const color = theme === 'theme-dark' ? '255, 255, 255' : '150, 200, 255';
+            const currentAlpha = Math.max(0, p.alpha + Math.sin(time * 2 + p.x) * 0.3);
+            fillStyle = `rgba(${color}, ${currentAlpha})`;
+          }
+
+          ctx.beginPath();
+          if (theme === 'theme-thanksgiving') {
+            // Draw oval/leaf shape
+            ctx.ellipse(p.x, p.y, Math.max(1, p.currentRadius || p.radius), p.radius, Math.sin(time + p.life), 0, Math.PI * 2);
+          } else {
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          }
+          ctx.fillStyle = fillStyle;
+          ctx.fill();
+        });
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [theme]);
+
+  return (
+    <canvas 
+      ref={canvasRef} 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: -1,
+        opacity: 0.8
+      }}
+    />
+  );
+}

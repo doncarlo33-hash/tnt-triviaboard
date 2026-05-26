@@ -1,0 +1,106 @@
+import { useState, useEffect, useRef } from 'react';
+import Peer from 'peerjs';
+
+export function useRemoteHost(state) {
+  const [roomId, setRoomId] = useState(null);
+  const [connections, setConnections] = useState([]);
+  const peerRef = useRef(null);
+  const connectionsRef = useRef([]);
+
+  useEffect(() => {
+    // Generate a short, somewhat readable ID
+    const id = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const peer = new Peer(`tnt-${id}`);
+    peerRef.current = peer;
+
+    peer.on('open', (id) => {
+      setRoomId(id);
+    });
+
+    peer.on('connection', (conn) => {
+      conn.on('open', () => {
+        connectionsRef.current.push(conn);
+        setConnections([...connectionsRef.current]);
+        
+        // Send initial state immediately upon connection
+        conn.send(JSON.stringify(state));
+      });
+
+      conn.on('close', () => {
+        connectionsRef.current = connectionsRef.current.filter(c => c !== conn);
+        setConnections([...connectionsRef.current]);
+      });
+    });
+
+    return () => {
+      peer.destroy();
+    };
+  }, []); // Only run once on mount
+
+  // Broadcast state changes with debounce to prevent flooding
+  useEffect(() => {
+    if (connectionsRef.current.length > 0) {
+      const timeoutId = window.setTimeout(() => {
+        const stateStr = JSON.stringify(state);
+        connectionsRef.current.forEach(conn => {
+          if (conn.open) {
+            conn.send(stateStr);
+          }
+        });
+      }, 50); // 50ms debounce
+      return () => window.clearTimeout(timeoutId);
+    }
+  }, [state]);
+
+  return { roomId, connectionCount: connections.length };
+}
+
+export function useRemoteClient(targetRoomId) {
+  const [remoteState, setRemoteState] = useState(null);
+  const [status, setStatus] = useState('connecting');
+  const peerRef = useRef(null);
+  const connRef = useRef(null);
+
+  useEffect(() => {
+    if (!targetRoomId) {
+      setStatus('disconnected');
+      return;
+    }
+
+    const peer = new Peer();
+    peerRef.current = peer;
+
+    peer.on('open', () => {
+      const conn = peer.connect(targetRoomId);
+      connRef.current = conn;
+
+      conn.on('open', () => {
+        setStatus('connected');
+      });
+
+      conn.on('data', (data) => {
+        try {
+          const parsed = JSON.parse(data);
+          setRemoteState(parsed);
+        } catch (e) {
+          console.error("Failed to parse remote state", e);
+        }
+      });
+
+      conn.on('close', () => {
+        setStatus('disconnected');
+      });
+    });
+
+    peer.on('error', (err) => {
+      console.error("PeerJS Error", err);
+      setStatus('error');
+    });
+
+    return () => {
+      peer.destroy();
+    };
+  }, [targetRoomId]);
+
+  return { remoteState, status };
+}

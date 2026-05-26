@@ -1,0 +1,11 @@
+Add-Type -AssemblyName System.Drawing
+$img = [System.Drawing.Image]::FromFile("c:\Users\donca\OneDrive\Documents\Codex Projects\trivia-scoreboard-react\public\pwa-192x192.png")
+$bmp = New-Object System.Drawing.Bitmap($img, (New-Object System.Drawing.Size(256, 256)))
+$iconHandle = $bmp.GetHicon()
+$icon = [System.Drawing.Icon]::FromHandle($iconHandle)
+$stream = New-Object System.IO.FileStream("c:\Users\donca\OneDrive\Documents\Codex Projects\trivia-scoreboard-react\public\trivia-ps.ico", [System.IO.FileMode]::Create)
+$icon.Save($stream)
+$stream.Close()
+$img.Dispose()
+$bmp.Dispose()
+$icon.Dispose()
