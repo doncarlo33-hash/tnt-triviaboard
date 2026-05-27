@@ -3,7 +3,7 @@ import { useSettings } from '../settingsStore.js';
 
 import { isIndexedDbMediaRef, getMediaRecord } from './media.js';
 import { MEDIA_REF_PREFIX } from '../config.js';
-import { globalHostConnections } from './remote.js';
+import { hostConnectionManager } from './remote.js';
 
 class AudioEngine {
   constructor() {
@@ -82,9 +82,10 @@ class AudioEngine {
     this.playLocal(key, volume);
     
     // Broadcast to remote screens
-    if (globalHostConnections && globalHostConnections.length > 0) {
+    const conns = hostConnectionManager.getConnections();
+    if (conns && conns.length > 0) {
       const msg = JSON.stringify({ type: 'AUDIO_PLAY', key, volume });
-      globalHostConnections.forEach(conn => {
+      conns.forEach(conn => {
         if (conn.open) {
           conn.send(msg);
         }

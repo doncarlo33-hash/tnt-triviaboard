@@ -82,9 +82,13 @@ export default function DisplayScreen({ state: localState, setState }) {
   const roomId = searchParams.get('room');
   const { remoteState, status: remoteStatus } = useRemoteClient(roomId);
 
+  const [debugAudioEvent, setDebugAudioEvent] = useState(null);
+
   useEffect(() => {
     function handleRemoteAudio(e) {
       if (e.detail && e.detail.key) {
+        setDebugAudioEvent(`Received: ${e.detail.key} (vol: ${e.detail.volume})`);
+        setTimeout(() => setDebugAudioEvent(null), 3000);
         audioEngine.playLocal(e.detail.key, e.detail.volume);
       }
     }
@@ -355,6 +359,11 @@ export default function DisplayScreen({ state: localState, setState }) {
 
   return (
     <div className={`display-shell${!state.hasStartedGame ? " intro-display-shell" : ""}`} onClick={() => setHasInteracted(true)}>
+      {debugAudioEvent && (
+        <div style={{ position: 'fixed', top: 10, left: 10, background: 'red', color: 'white', padding: '1rem', zIndex: 9999, fontSize: '2rem' }}>
+          {debugAudioEvent}
+        </div>
+      )}
       {!hasInteracted && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)',

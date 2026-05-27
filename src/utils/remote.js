@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Peer from 'peerjs';
 
-export let globalHostConnections = [];
+export const hostConnectionManager = {
+  getConnections: () => []
+};
 
 export function useRemoteHost(state, onMessage) {
   const [roomId, setRoomId] = useState(null);
@@ -14,6 +16,8 @@ export function useRemoteHost(state, onMessage) {
     const id = Math.random().toString(36).substring(2, 8).toUpperCase();
     const peer = new Peer(`tnt-${id}`);
     peerRef.current = peer;
+    
+    hostConnectionManager.getConnections = () => connectionsRef.current;
 
     peer.on('open', (id) => {
       setRoomId(id);
@@ -22,7 +26,6 @@ export function useRemoteHost(state, onMessage) {
     peer.on('connection', (conn) => {
       conn.on('open', () => {
         connectionsRef.current.push(conn);
-        globalHostConnections = connectionsRef.current;
         setConnections([...connectionsRef.current]);
         
         // Send initial state immediately upon connection
@@ -40,12 +43,12 @@ export function useRemoteHost(state, onMessage) {
 
       conn.on('close', () => {
         connectionsRef.current = connectionsRef.current.filter(c => c !== conn);
-        globalHostConnections = connectionsRef.current;
         setConnections([...connectionsRef.current]);
       });
     });
 
     return () => {
+      hostConnectionManager.getConnections = () => [];
       peer.destroy();
     };
   }, []); // Only run once on mount
