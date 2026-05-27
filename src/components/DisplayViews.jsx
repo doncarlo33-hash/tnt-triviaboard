@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
+import { QRCodeSVG } from 'qrcode.react';
 import AnimatedNumber from './AnimatedNumber.jsx';
 import { FINAL_ROUND_INSTRUCTIONS, VENMO_QR_SRC } from '../config.js';
 import { getPostGameRecap } from '../utils/helpers.js';
@@ -314,3 +315,22 @@ export function FinalCategoriesView({ questions }) {
     </section>
   );
 }
+
+export function PlayerJoinQR({ roomId }) {
+  if (!roomId) return null;
+  const url = new URL(window.location.href);
+  url.searchParams.set('screen', 'player');
+  url.searchParams.set('room', roomId);
+  const joinUrl = url.toString();
+
+  return (
+    <div className="player-join-qr" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--panel-bg)', padding: '30px', borderRadius: '16px', border: '2px solid var(--accent-strong)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
+      <h3 style={{ margin: '0 0 20px 0', fontSize: '1.8rem', color: '#fff' }}>Scan to Join Game</h3>
+      <div style={{ background: '#fff', padding: '16px', borderRadius: '12px' }}>
+        <QRCodeSVG value={joinUrl} size={250} />
+      </div>
+      <p style={{ marginTop: '20px', fontSize: '1.2rem', color: 'var(--text-muted)' }}>Room ID: <strong style={{ color: '#fff', letterSpacing: '2px' }}>{roomId}</strong></p>
+    </div>
+  );
+}
+

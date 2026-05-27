@@ -22,6 +22,7 @@ import BackgroundEffects from './components/BackgroundEffects.jsx';
 import AudioSetupModal from './components/AudioSetupModal.jsx';
 import HotkeyGuide from './components/HotkeyGuide.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { PlayerJoinQR } from './components/DisplayViews.jsx';
 
 export default function App() {
   const screen = getScreenMode();
@@ -35,6 +36,7 @@ export default function App() {
   const [finalAdminQuestionIndex, setFinalAdminQuestionIndex] = useState(0);
   const [showAudioSetup, setShowAudioSetup] = useState(false);
   const [showHotkeyGuide, setShowHotkeyGuide] = useState(false);
+  const [showHostQR, setShowHostQR] = useState(false);
   const undoStackRef = useRef([]);
 
   function updateState(updater) {
@@ -974,6 +976,14 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BackgroundEffects />
+      {showHostQR && (
+        <div className="modal-backdrop" onClick={() => setShowHostQR(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ background: 'transparent', boxShadow: 'none' }}>
+            <PlayerJoinQR roomId={roomId} />
+            <button className="secondary-button" style={{ marginTop: '20px', width: '100%', background: '#111' }} onClick={() => setShowHostQR(false)}>Close</button>
+          </div>
+        </div>
+      )}
       <div className="shell">
         <header className="hero">
           <div>
@@ -996,6 +1006,7 @@ export default function App() {
               navigator.clipboard.writeText(url.toString());
               alert(`Copied Player Connect URL: ${url.toString()}`);
             }}>Copy Player Link</button>
+            <button className="secondary-button" onClick={() => setShowHostQR(true)}>Show Player QR</button>
             <span className="muted" style={{ padding: '0 8px', fontSize: '0.9em' }}>
               {connectionCount > 0 ? `🟢 ${connectionCount} Connected` : '⚪ Remote Ready'}
             </span>

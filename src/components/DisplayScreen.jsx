@@ -7,7 +7,7 @@ import { useRemoteClient } from '../utils/remote.js';
 import { getActiveQuestion, getRankedTeams } from '../utils/state.js';
 import LeaderboardCard from './LeaderboardCard.jsx';
 import QuestionCard, { QuestionTimer } from './QuestionCard.jsx';
-import { FinalRoundInstructions, GameRulesView, EndGameWinners, PostGameRecap, AwardMomentOverlay, HostTipCard, FinalCategoriesView, SocialMediaView, SocialMediaQR } from './DisplayViews.jsx';
+import { FinalRoundInstructions, GameRulesView, EndGameWinners, PostGameRecap, AwardMomentOverlay, HostTipCard, FinalCategoriesView, SocialMediaView, SocialMediaQR, PlayerJoinQR } from './DisplayViews.jsx';
 import { getQuestionLabel } from '../utils/helpers.js';
 
 function CrownOvertakeOverlay({ event, onComplete }) {
@@ -372,6 +372,11 @@ export default function DisplayScreen({ state: localState, setState }) {
               />
             </div>
           </div>
+          {roomId && (
+            <div style={{ position: 'absolute', bottom: '40px', right: '40px', zIndex: 10, transform: 'scale(0.85)', transformOrigin: 'bottom right' }}>
+              <PlayerJoinQR roomId={roomId} />
+            </div>
+          )}
           <video
             ref={openingExplosionVideoRef}
             className={`intro-explosion-video${isOpeningExplosionActive ? " active" : ""}`}
