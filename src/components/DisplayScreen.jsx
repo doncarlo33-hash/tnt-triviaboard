@@ -129,6 +129,8 @@ export default function DisplayScreen({ state: localState, setState }) {
   const displayCategoryIndex = Number.isInteger(state.displayCategoryIndex) ? state.displayCategoryIndex : 0;
   const displayCategory = state.categories[displayCategoryIndex] || state.categories[0];
 
+  const [hasInteracted, setHasInteracted] = useState(false);
+
   async function toggleFullscreen() {
     try {
       if (document.fullscreenElement) {
@@ -341,7 +343,17 @@ export default function DisplayScreen({ state: localState, setState }) {
   const showQuestionTopbar = showQuestionTimer || showQuestionMeta;
 
   return (
-    <div className={`display-shell${!state.hasStartedGame ? " intro-display-shell" : ""}`}>
+    <div className={`display-shell${!state.hasStartedGame ? " intro-display-shell" : ""}`} onClick={() => setHasInteracted(true)}>
+      {!hasInteracted && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          color: 'white', cursor: 'pointer', fontFamily: 'system-ui, sans-serif'
+        }}>
+          <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎙️ Enable Audio</h1>
+          <p style={{ fontSize: '1.5rem', opacity: 0.8 }}>Click anywhere on this screen to allow sound effects.</p>
+        </div>
+      )}
       {roomId && (
         <div className="remote-status-badge">
           {remoteStatus === 'connected' ? '🟢 Remote Linked' : remoteStatus === 'connecting' ? '🟡 Linking...' : '🔴 Remote Offline'}
