@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OPENING_EXPLOSION_LEAD_SECONDS } from '../config.js';
 import { useSettings, applyThemeToBody } from '../settingsStore.js';
-import { useMediaUrl } from '../utils/media.js';
 import { useRemoteClient } from '../utils/remote.js';
 import { getActiveQuestion, getRankedTeams } from '../utils/state.js';
 import LeaderboardCard from './LeaderboardCard.jsx';
@@ -30,12 +29,6 @@ function CrownOvertakeOverlay({ event, onComplete }) {
 export default function DisplayScreen({ state: localState, setState }) {
   const { settings } = useSettings();
   
-  const resolvedSwooshSrc = useMediaUrl(settings.sfxSwooshSrc);
-  const resolvedEndGameMusicSrc = useMediaUrl(settings.endGameMusicSrc);
-  const resolvedOpeningExplosionAudioSrc = useMediaUrl(settings.openingExplosionAudioSrc);
-  const resolvedOpeningAnimationSrc = useMediaUrl(settings.openingAnimationSrc);
-  const resolvedOpeningExplosionVideoSrc = useMediaUrl(settings.openingExplosionVideoSrc);
-  
   // Wrap applyThemeToBody to play sound on change
   const previousThemeRef = useRef(null);
   const applyThemeWithSound = (theme) => {
@@ -45,11 +38,9 @@ export default function DisplayScreen({ state: localState, setState }) {
     
     if (isThemeChange) {
       try {
-        if (resolvedSwooshSrc) {
-          const audio = new Audio(resolvedSwooshSrc);
-          audio.volume = 0.6;
-          audio.play().catch(() => {});
-        }
+        const audio = new Audio(settings.sfxSwooshSrc);
+        audio.volume = 0.6;
+        audio.play().catch(() => {});
       } catch (e) {}
     }
     
@@ -98,18 +89,16 @@ export default function DisplayScreen({ state: localState, setState }) {
       if (newLeader && oldLeader && newLeader.total > oldLeader.total) {
         setOvertakeEvent({ newLeader, oldLeader, timestamp: Date.now() });
         try {
-          if (resolvedSwooshSrc) {
-            const audio = new Audio(resolvedSwooshSrc);
-            audio.volume = 0.8;
-            audio.play().catch(() => {});
-          }
+          const audio = new Audio(settings.sfxSwooshSrc);
+          audio.volume = 0.8;
+          audio.play().catch(() => {});
         } catch (e) {}
       }
     }
     if (currentLeaderId) {
       setPreviousLeaderId(currentLeaderId);
     }
-  }, [rankedTeams, previousLeaderId, state.teams, resolvedSwooshSrc]);
+  }, [rankedTeams, previousLeaderId, state.teams, settings.sfxSwooshSrc]);
 
   // Apply theme from game state — syncs reliably via the existing proven state channel
   useEffect(() => {
@@ -347,7 +336,7 @@ export default function DisplayScreen({ state: localState, setState }) {
           {remoteStatus === 'connected' ? '🟢 Remote Linked' : remoteStatus === 'connecting' ? '🟡 Linking...' : '🔴 Remote Offline'}
         </div>
       )}
-      <audio ref={endGameMusicRef} src={resolvedEndGameMusicSrc} />
+      <audio ref={endGameMusicRef} src={settings.endGameMusicSrc} />
       {!state.hasStartedGame ? (
         <section className={`intro-screen${isOpeningExplosionActive ? " exploding" : ""}`}>
           <audio
@@ -358,12 +347,12 @@ export default function DisplayScreen({ state: localState, setState }) {
             onTimeUpdate={syncOpeningExplosion}
             onEnded={finishOpeningMusic}
           />
-          <audio ref={openingExplosionAudioRef} src={resolvedOpeningExplosionAudioSrc} />
+          <audio ref={openingExplosionAudioRef} src={settings.openingExplosionAudioSrc} />
           <div className="intro-card">
             <div className="intro-logo-wrap">
               <video
                 className="intro-animation"
-                src={resolvedOpeningAnimationSrc}
+                src={settings.openingAnimationSrc}
                 autoPlay
                 loop
                 muted
@@ -375,7 +364,7 @@ export default function DisplayScreen({ state: localState, setState }) {
           <video
             ref={openingExplosionVideoRef}
             className={`intro-explosion-video${isOpeningExplosionActive ? " active" : ""}`}
-            src={resolvedOpeningExplosionVideoSrc}
+            src={settings.openingExplosionVideoSrc}
             preload="auto"
             muted
             playsInline
