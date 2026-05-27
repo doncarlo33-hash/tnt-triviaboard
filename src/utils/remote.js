@@ -1,23 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import Peer from 'peerjs';
 
-export const hostConnectionManager = {
-  getConnections: () => []
-};
+export const hostConnections = [];
 
 export function useRemoteHost(state, onMessage) {
   const [roomId, setRoomId] = useState(null);
   const [connections, setConnections] = useState([]);
   const peerRef = useRef(null);
-  const connectionsRef = useRef([]);
 
   useEffect(() => {
     // Generate a short, somewhat readable ID
     const id = Math.random().toString(36).substring(2, 8).toUpperCase();
     const peer = new Peer(`tnt-${id}`);
     peerRef.current = peer;
-    
-    hostConnectionManager.getConnections = () => connectionsRef.current;
 
     peer.on('open', (id) => {
       setRoomId(id);
@@ -25,8 +20,10 @@ export function useRemoteHost(state, onMessage) {
 
     peer.on('connection', (conn) => {
       conn.on('open', () => {
-        connectionsRef.current.push(conn);
-        setConnections([...connectionsRef.current]);
+        if (!hostConnections.includes(conn)) {
+          hostConnections.push(conn);
+        }
+        setConnections([...hostConnections]);
         
         // Send initial state immediately upon connection
         conn.send(JSON.stringify(state));
@@ -42,23 +39,24 @@ export function useRemoteHost(state, onMessage) {
       });
 
       conn.on('close', () => {
-        connectionsRef.current = connectionsRef.current.filter(c => c !== conn);
-        setConnections([...connectionsRef.current]);
+        const idx = hostConnections.indexOf(conn);
+        if (idx > -1) hostConnections.splice(idx, 1);
+        setConnections([...hostConnections]);
       });
     });
 
     return () => {
-      hostConnectionManager.getConnections = () => [];
+      hostConnections.length = 0;
       peer.destroy();
     };
   }, []); // Only run once on mount
 
   // Broadcast state changes with debounce to prevent flooding
   useEffect(() => {
-    if (connectionsRef.current.length > 0) {
+    if (hostConnections.length > 0) {
       const timeoutId = window.setTimeout(() => {
         const stateStr = JSON.stringify(state);
-        connectionsRef.current.forEach(conn => {
+        hostConnections.forEach(conn => {
           if (conn.open) {
             conn.send(stateStr);
           }
