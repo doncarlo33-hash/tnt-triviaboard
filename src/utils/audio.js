@@ -69,12 +69,28 @@ class AudioEngine {
     this.sounds[key] = sound;
   }
 
-  play(key, volume = 1.0) {
+  playLocal(key, volume = 1.0) {
     const sound = this.sounds[key];
     if (sound) {
       sound.volume(volume);
       sound.play();
     }
+  }
+
+  play(key, volume = 1.0) {
+    this.playLocal(key, volume);
+    
+    // Broadcast to remote screens
+    import('./remote.js').then(({ globalHostConnections }) => {
+      if (globalHostConnections && globalHostConnections.length > 0) {
+        const msg = JSON.stringify({ type: 'AUDIO_PLAY', key, volume });
+        globalHostConnections.forEach(conn => {
+          if (conn.open) {
+            conn.send(msg);
+          }
+        });
+      }
+    }).catch(err => console.error("Failed to broadcast audio", err));
   }
 
   stop(key) {

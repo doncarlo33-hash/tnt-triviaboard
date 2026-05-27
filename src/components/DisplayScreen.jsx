@@ -9,6 +9,7 @@ import LeaderboardCard from './LeaderboardCard.jsx';
 import QuestionCard, { QuestionTimer } from './QuestionCard.jsx';
 import { FinalRoundInstructions, GameRulesView, EndGameWinners, PostGameRecap, AwardMomentOverlay, HostTipCard, FinalCategoriesView, SocialMediaView, SocialMediaQR, PlayerJoinQR } from './DisplayViews.jsx';
 import { getQuestionLabel } from '../utils/helpers.js';
+import { audioEngine } from '../utils/audio.js';
 
 function CrownOvertakeOverlay({ event, onComplete }) {
   useEffect(() => {
@@ -80,6 +81,16 @@ export default function DisplayScreen({ state: localState, setState }) {
   const searchParams = new URLSearchParams(window.location.search);
   const roomId = searchParams.get('room');
   const { remoteState, status: remoteStatus } = useRemoteClient(roomId);
+
+  useEffect(() => {
+    function handleRemoteAudio(e) {
+      if (e.detail && e.detail.key) {
+        audioEngine.playLocal(e.detail.key, e.detail.volume);
+      }
+    }
+    window.addEventListener('remote-audio-play', handleRemoteAudio);
+    return () => window.removeEventListener('remote-audio-play', handleRemoteAudio);
+  }, []);
   
   // Use remote state if available and connected, otherwise fall back to local storage state
   const state = (roomId && remoteState) ? remoteState : localState;

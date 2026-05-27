@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Peer from 'peerjs';
 
+export let globalHostConnections = [];
+
 export function useRemoteHost(state, onMessage) {
   const [roomId, setRoomId] = useState(null);
   const [connections, setConnections] = useState([]);
@@ -20,6 +22,7 @@ export function useRemoteHost(state, onMessage) {
     peer.on('connection', (conn) => {
       conn.on('open', () => {
         connectionsRef.current.push(conn);
+        globalHostConnections = connectionsRef.current;
         setConnections([...connectionsRef.current]);
         
         // Send initial state immediately upon connection
@@ -37,6 +40,7 @@ export function useRemoteHost(state, onMessage) {
 
       conn.on('close', () => {
         connectionsRef.current = connectionsRef.current.filter(c => c !== conn);
+        globalHostConnections = connectionsRef.current;
         setConnections([...connectionsRef.current]);
       });
     });
@@ -90,7 +94,9 @@ export function useRemoteClient(targetRoomId) {
       conn.on('data', (data) => {
         try {
           const parsed = typeof data === 'string' ? JSON.parse(data) : data;
-          if (parsed && parsed.type === 'STATE_UPDATE') {
+          if (parsed && parsed.type === 'AUDIO_PLAY') {
+            window.dispatchEvent(new CustomEvent('remote-audio-play', { detail: parsed }));
+          } else if (parsed && parsed.type === 'STATE_UPDATE') {
             setRemoteState(parsed.state);
           } else {
             setRemoteState(parsed);
@@ -144,7 +150,9 @@ export function usePlayerConnection(targetRoomId) {
       conn.on('data', (data) => {
         try {
           const parsed = typeof data === 'string' ? JSON.parse(data) : data;
-          if (parsed && parsed.type === 'STATE_UPDATE') {
+          if (parsed && parsed.type === 'AUDIO_PLAY') {
+            window.dispatchEvent(new CustomEvent('remote-audio-play', { detail: parsed }));
+          } else if (parsed && parsed.type === 'STATE_UPDATE') {
             setRemoteState(parsed.state);
           } else {
             setRemoteState(parsed);
