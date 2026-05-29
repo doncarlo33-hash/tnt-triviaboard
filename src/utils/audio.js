@@ -82,13 +82,9 @@ class AudioEngine {
     this.playLocal(key, volume);
     
     // Broadcast to remote screens
-    if (hostConnections.length > 0) {
+    if (typeof window !== 'undefined' && typeof window.__broadcastAudioEvent === 'function') {
       const msg = JSON.stringify({ type: 'AUDIO_PLAY', key, volume });
-      hostConnections.forEach(conn => {
-        if (conn.open) {
-          conn.send(msg);
-        }
-      });
+      window.__broadcastAudioEvent(msg);
     }
   }
 

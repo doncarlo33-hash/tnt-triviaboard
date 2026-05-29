@@ -2895,7 +2895,8 @@ button:disabled {
 }
 
 .leaderboard-name.energized {
-  padding: 8px 10px;
+  padding: 4px 8px;
+  margin: -4px -8px;
   background: linear-gradient(135deg, #ffcb52, #ff8a3d, #ff5666);
   color: #40150e;
 }

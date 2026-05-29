@@ -44,9 +44,17 @@ export function useRemoteHost(state, onMessage) {
         setConnections([...hostConnections]);
       });
     });
+    
+    // Attach global audio broadcaster for audioEngine
+    window.__broadcastAudioEvent = (msg) => {
+      hostConnections.forEach(conn => {
+        if (conn.open) conn.send(msg);
+      });
+    };
 
     return () => {
       hostConnections.length = 0;
+      delete window.__broadcastAudioEvent;
       peer.destroy();
     };
   }, []); // Only run once on mount
