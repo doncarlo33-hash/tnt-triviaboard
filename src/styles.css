@@ -2889,15 +2889,26 @@ button:disabled {
   font-size: 1.75rem;
   font-weight: 900;
   line-height: 1.05;
-  padding: 4px 8px;
-  margin: -4px 0;
-  border-radius: 6px;
+  padding: 0;
   overflow-wrap: anywhere;
 }
 
 .leaderboard-name.energized {
-  background: linear-gradient(135deg, #ffcb52, #ff8a3d, #ff5666);
+  position: relative;
   color: #40150e;
+  z-index: 1;
+}
+
+.leaderboard-name.energized::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #ffcb52, #ff8a3d, #ff5666);
+  border-radius: 8px;
+  z-index: -1;
 }
 
 .leaderboard-score {
@@ -3076,9 +3087,11 @@ button:disabled {
 }
 
 .display-teams-card .leaderboard-name.energized {
-  padding: 0;
-  background: transparent;
   color: #ffbe56;
+}
+
+.display-teams-card .leaderboard-name.energized::before {
+  display: none;
 }
 
 .display-teams-card .leaderboard-score {
