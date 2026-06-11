@@ -385,7 +385,7 @@ export default function DisplayScreen({ state: localState, setState, hostRoomId 
               />
             </div>
           </div>
-          {activeRoomId && (
+          {activeRoomId && !settings.hidePlayerQR && (
             <div style={{ position: 'absolute', bottom: '40px', right: '40px', zIndex: 10, transform: 'scale(0.85)', transformOrigin: 'bottom right' }}>
               <PlayerJoinQR roomId={activeRoomId} />
             </div>

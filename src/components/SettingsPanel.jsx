@@ -120,6 +120,20 @@ export default function SettingsPanel({ updateState }) {
 
           </div>
         </div>
+        
+        <div className="settings-group">
+          <h3>Display Preferences</h3>
+          <div style={{ marginTop: '12px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={settings.hidePlayerQR || false} 
+                onChange={e => updateSettings({ hidePlayerQR: e.target.checked })} 
+              />
+              Hide Player QR Code on Audience Display
+            </label>
+          </div>
+        </div>
 
         <div className="settings-group">
           <h3>AI Verification</h3>
