@@ -28,7 +28,7 @@ function CrownOvertakeOverlay({ event, onComplete }) {
   );
 }
 
-export default function DisplayScreen({ state: localState, setState }) {
+export default function DisplayScreen({ state: localState, setState, hostRoomId }) {
   const { settings } = useSettings();
   
 
@@ -75,6 +75,7 @@ export default function DisplayScreen({ state: localState, setState }) {
 
   // Remote Control support
   const roomId = useMemo(() => new URLSearchParams(window.location.search).get('room'), []);
+  const activeRoomId = roomId || hostRoomId;
   const { remoteState, status: remoteStatus } = useRemoteClient(roomId);
 
   useEffect(() => {
@@ -384,9 +385,9 @@ export default function DisplayScreen({ state: localState, setState }) {
               />
             </div>
           </div>
-          {roomId && (
+          {activeRoomId && (
             <div style={{ position: 'absolute', bottom: '40px', right: '40px', zIndex: 10, transform: 'scale(0.85)', transformOrigin: 'bottom right' }}>
-              <PlayerJoinQR roomId={roomId} />
+              <PlayerJoinQR roomId={activeRoomId} />
             </div>
           )}
           <video
@@ -483,6 +484,27 @@ export default function DisplayScreen({ state: localState, setState }) {
                 className="display-rules-screen"
               >
                 <GameRulesView />
+              </motion.main>
+            ) : state.displayView === "playerJoin" ? (
+              <motion.main 
+                key="playerJoin"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.1 }}
+                transition={{ duration: 0.4, type: "spring", bounce: 0.4 }}
+                className="display-leaderboard-only"
+                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}
+              >
+                {activeRoomId ? (
+                  <div style={{ transform: 'scale(1.5)' }}>
+                    <PlayerJoinQR roomId={activeRoomId} />
+                  </div>
+                ) : (
+                  <div style={{ background: 'rgba(0,0,0,0.5)', padding: '40px', borderRadius: '16px', textAlign: 'center' }}>
+                    <h2 style={{ color: '#ffea00', marginBottom: '16px' }}>Network Not Ready</h2>
+                    <p>Wait for the game to connect or host to join a room.</p>
+                  </div>
+                )}
               </motion.main>
             ) : state.displayView === "finalInstructions" ? (
               <motion.main 

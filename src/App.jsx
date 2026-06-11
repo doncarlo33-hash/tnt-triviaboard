@@ -83,6 +83,7 @@ export default function App() {
   }, [updateState]);
 
   const { roomId, connectionCount } = useRemoteHost(state, handleIncomingMessage);
+  const [broadcastRoomId, setBroadcastRoomId] = useState(null);
 
   // Persist game state to localStorage (debounced)
   useEffect(() => {
@@ -111,6 +112,9 @@ export default function App() {
           if (event.data?.type === 'STATE_UPDATE') {
             lastBroadcastTimeRef.current = Date.now();
             setState(event.data.state);
+            if (event.data.roomId) {
+              setBroadcastRoomId(event.data.roomId);
+            }
           }
         };
       }
@@ -148,7 +152,7 @@ export default function App() {
     } else {
       // Admin screen instantly pushes updates to display screen
       if (channel) {
-        channel.postMessage({ type: 'STATE_UPDATE', state });
+        channel.postMessage({ type: 'STATE_UPDATE', state, roomId });
       }
       return () => {
         if (channel) channel.close();
@@ -723,6 +727,14 @@ export default function App() {
     });
   }
 
+  function showPlayerJoinOnDisplay() {
+    updateState((draft) => {
+      draft.activeQuestion = null;
+      draft.displayView = "playerJoin";
+      return draft;
+    });
+  }
+
   function showBoardOnDisplay() {
     updateState((draft) => {
       draft.activeQuestion = null;
@@ -970,7 +982,7 @@ export default function App() {
     return (
       <ErrorBoundary>
         <BackgroundEffects />
-        <DisplayScreen state={state} setState={setState} updateState={updateState} />
+        <DisplayScreen state={state} setState={setState} updateState={updateState} hostRoomId={roomId || broadcastRoomId} />
       </ErrorBoundary>
     );
   }
@@ -1158,6 +1170,12 @@ export default function App() {
                     onClick={showSocialOnDisplay}
                   >
                     Show Social Media
+                  </button>
+                  <button
+                    className="ghost-button"
+                    onClick={showPlayerJoinOnDisplay}
+                  >
+                    Show Player QR
                   </button>
                   <button
                     className="ghost-button"

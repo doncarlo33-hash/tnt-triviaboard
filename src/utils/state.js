@@ -241,7 +241,7 @@ export function normalizeDisplayCategoryIndex(index) {
 }
 
 export function normalizeDisplayView(view) {
-  return ["board", "leaderboard", "halftime", "finalInstructions", "finalCategories", "endGame", "recap", "rules", "social"].includes(view) ? view : "board";
+  return ["board", "leaderboard", "halftime", "finalInstructions", "finalCategories", "endGame", "recap", "rules", "social", "playerJoin"].includes(view) ? view : "board";
 }
 
 export function normalizeAwardMoment(awardMoment, teams) {
