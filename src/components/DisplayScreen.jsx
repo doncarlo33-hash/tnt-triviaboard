@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OPENING_EXPLOSION_LEAD_SECONDS } from '../config.js';
 import { useSettings, applyThemeToBody } from '../settingsStore.js';
@@ -7,7 +7,7 @@ import { useRemoteClient } from '../utils/remote.js';
 import { getActiveQuestion, getRankedTeams } from '../utils/state.js';
 import LeaderboardCard from './LeaderboardCard.jsx';
 import QuestionCard, { QuestionTimer } from './QuestionCard.jsx';
-import { FinalRoundInstructions, GameRulesView, EndGameWinners, PostGameRecap, AwardMomentOverlay, HostTipCard, FinalCategoriesView, SocialMediaView, SocialMediaQR, PlayerJoinQR } from './DisplayViews.jsx';
+import { FinalRoundInstructions, GameRulesView, EndGameWinners, PostGameRecap, HostTipCard, FinalCategoriesView, SocialMediaView, PlayerJoinQR } from './DisplayViews.jsx';
 import { getQuestionLabel } from '../utils/helpers.js';
 import { audioEngine } from '../utils/audio.js';
 
@@ -31,7 +31,7 @@ function CrownOvertakeOverlay({ event, onComplete }) {
 export default function DisplayScreen({ state: localState, setState }) {
   const { settings } = useSettings();
   
-  const resolvedSwooshSrc = useMediaUrl(settings.sfxSwooshSrc);
+
   const resolvedEndGameMusicSrc = useMediaUrl(settings.endGameMusicSrc);
   const resolvedOpeningExplosionAudioSrc = useMediaUrl(settings.openingExplosionAudioSrc);
   const resolvedOpeningAnimationSrc = useMediaUrl(settings.openingAnimationSrc);
@@ -39,19 +39,14 @@ export default function DisplayScreen({ state: localState, setState }) {
   
   // Wrap applyThemeToBody to play sound on change
   const previousThemeRef = useRef(null);
-  const applyThemeWithSound = (theme) => {
+  const applyThemeWithSoundRef = useRef(null);
+  applyThemeWithSoundRef.current = (theme) => {
     if (!theme) return;
     
     const isThemeChange = previousThemeRef.current && previousThemeRef.current !== theme;
     
     if (isThemeChange) {
-      try {
-        if (resolvedSwooshSrc) {
-          const audio = new Audio(resolvedSwooshSrc);
-          audio.volume = 0.6;
-          audio.play().catch(() => {});
-        }
-      } catch (e) {}
+      audioEngine.playLocal('swoosh', 0.6);
     }
     
     // Only animate if it's an actual change during the session, not the first load.
@@ -60,11 +55,12 @@ export default function DisplayScreen({ state: localState, setState }) {
     
     applyThemeToBody(theme, shouldAnimate);
   };
+  const applyThemeWithSound = useCallback((theme) => applyThemeWithSoundRef.current(theme), []);
 
   // Apply theme via Zustand (works for same-window, BroadcastChannel updates)
   useEffect(() => {
     applyThemeWithSound(settings.theme);
-  }, [settings.theme]);
+  }, [settings.theme, applyThemeWithSound]);
 
   // Listen for direct postMessage from admin window (reliable across PWA/browser boundaries)
   useEffect(() => {
@@ -78,17 +74,12 @@ export default function DisplayScreen({ state: localState, setState }) {
   }, []);
 
   // Remote Control support
-  const searchParams = new URLSearchParams(window.location.search);
-  const roomId = searchParams.get('room');
+  const roomId = useMemo(() => new URLSearchParams(window.location.search).get('room'), []);
   const { remoteState, status: remoteStatus } = useRemoteClient(roomId);
-
-  const [debugAudioEvent, setDebugAudioEvent] = useState(null);
 
   useEffect(() => {
     function handleRemoteAudio(e) {
       if (e.detail && e.detail.key) {
-        setDebugAudioEvent(`Received: ${e.detail.key} (vol: ${e.detail.volume})`);
-        setTimeout(() => setDebugAudioEvent(null), 3000);
         audioEngine.playLocal(e.detail.key, e.detail.volume);
       }
     }
@@ -112,26 +103,20 @@ export default function DisplayScreen({ state: localState, setState }) {
       // Only trigger if new leader actually has more points (prevent triggering on team deletion/reset)
       if (newLeader && oldLeader && newLeader.total > oldLeader.total) {
         setOvertakeEvent({ newLeader, oldLeader, timestamp: Date.now() });
-        try {
-          if (resolvedSwooshSrc) {
-            const audio = new Audio(resolvedSwooshSrc);
-            audio.volume = 0.8;
-            audio.play().catch(() => {});
-          }
-        } catch (e) {}
+        audioEngine.playLocal('swoosh', 0.8);
       }
     }
     if (currentLeaderId) {
       setPreviousLeaderId(currentLeaderId);
     }
-  }, [rankedTeams, previousLeaderId, state.teams, resolvedSwooshSrc]);
+  }, [rankedTeams, previousLeaderId, state.teams]);
 
   // Apply theme from game state — syncs reliably via the existing proven state channel
   useEffect(() => {
     if (state.displayTheme) {
       applyThemeWithSound(state.displayTheme);
     }
-  }, [state.displayTheme]);
+  }, [state.displayTheme, applyThemeWithSound]);
 
   const openingMusicRef = useRef(null);
   const openingExplosionAudioRef = useRef(null);
@@ -359,11 +344,6 @@ export default function DisplayScreen({ state: localState, setState }) {
 
   return (
     <div className={`display-shell${!state.hasStartedGame ? " intro-display-shell" : ""}`} onClick={() => setHasInteracted(true)}>
-      {debugAudioEvent && (
-        <div style={{ position: 'fixed', top: 10, left: 10, background: 'red', color: 'white', padding: '1rem', zIndex: 9999, fontSize: '2rem' }}>
-          {debugAudioEvent}
-        </div>
-      )}
       {!hasInteracted && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.85)',

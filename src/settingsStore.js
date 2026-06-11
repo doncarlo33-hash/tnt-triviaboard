@@ -22,6 +22,7 @@ const defaultSettings = {
   sfxStreakSrc: '',
   sfxCategoryRevealSrc: '/magic-poof-spell-2-SBA-300420753.wav',
   aiApiKey: '',
+  muteSoundEffects: false,
 };
 
 function loadSettings() {

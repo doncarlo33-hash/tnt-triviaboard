@@ -3,7 +3,7 @@ import { useSettings } from '../settingsStore.js';
 
 import { isIndexedDbMediaRef, getMediaRecord } from './media.js';
 import { MEDIA_REF_PREFIX } from '../config.js';
-import { hostConnections } from './remote.js';
+
 
 class AudioEngine {
   constructor() {
@@ -71,6 +71,7 @@ class AudioEngine {
   }
 
   playLocal(key, volume = 1.0) {
+    if (this.currentSettings && this.currentSettings.muteSoundEffects) return;
     const sound = this.sounds[key];
     if (sound) {
       sound.volume(volume);

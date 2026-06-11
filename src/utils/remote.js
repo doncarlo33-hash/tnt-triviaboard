@@ -130,61 +130,11 @@ export function useRemoteClient(targetRoomId) {
     };
   }, [targetRoomId]);
 
-  return { remoteState, status };
+  return { remoteState, status, connRef };
 }
 
 export function usePlayerConnection(targetRoomId) {
-  const [remoteState, setRemoteState] = useState(null);
-  const [status, setStatus] = useState('connecting');
-  const peerRef = useRef(null);
-  const connRef = useRef(null);
-
-  useEffect(() => {
-    if (!targetRoomId) {
-      setStatus('disconnected');
-      return;
-    }
-
-    const peer = new Peer();
-    peerRef.current = peer;
-
-    peer.on('open', () => {
-      const conn = peer.connect(targetRoomId);
-      connRef.current = conn;
-
-      conn.on('open', () => {
-        setStatus('connected');
-      });
-
-      conn.on('data', (data) => {
-        try {
-          const parsed = typeof data === 'string' ? JSON.parse(data) : data;
-          if (parsed && parsed.type === 'AUDIO_PLAY') {
-            window.dispatchEvent(new CustomEvent('remote-audio-play', { detail: parsed }));
-          } else if (parsed && parsed.type === 'STATE_UPDATE') {
-            setRemoteState(parsed.state);
-          } else {
-            setRemoteState(parsed);
-          }
-        } catch (e) {
-          console.error("Failed to parse remote state", e);
-        }
-      });
-
-      conn.on('close', () => {
-        setStatus('disconnected');
-      });
-    });
-
-    peer.on('error', (err) => {
-      console.error("PeerJS Error", err);
-      setStatus('error');
-    });
-
-    return () => {
-      peer.destroy();
-    };
-  }, [targetRoomId]);
+  const { remoteState, status, connRef } = useRemoteClient(targetRoomId);
 
   const sendMessage = (msg) => {
     if (connRef.current && connRef.current.open) {

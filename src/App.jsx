@@ -326,6 +326,8 @@ export default function App() {
       draft.teams.forEach(t => {
         t.tb = 0; t.dbl = 0; t.doubleTapStatus = "ready"; t.doubleTapCategoryIndex = null;
         t.rounds = [0, 0, 0, 0, 0, 0]; t.f1 = 0; t.f2 = 0; t.boost = 0;
+        t.onFire = false;
+        t.sweptCount = 0;
       });
       draft.activeQuestion = null;
       draft.awardMoment = null;

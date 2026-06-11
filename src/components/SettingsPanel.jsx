@@ -131,6 +131,9 @@ export default function SettingsPanel({ updateState }) {
               <span className="mini-label">Google Gemini API Key</span>
               <input 
                 type="password" 
+                autoComplete="new-password"
+                data-lpignore="true"
+                data-1p-ignore="true"
                 value={settings.aiApiKey || ''} 
                 onChange={e => updateSettings({ aiApiKey: e.target.value })} 
                 placeholder="AIzaSy..." 
@@ -165,6 +168,15 @@ export default function SettingsPanel({ updateState }) {
           <div>
             <h3>Audio Assets</h3>
             <div style={{ display: 'grid', gap: '12px', marginTop: '12px' }}>
+              <label className="final-question-editor" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox" 
+                  checked={settings.muteSoundEffects || false} 
+                  onChange={e => updateSettings({ muteSoundEffects: e.target.checked })} 
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--accent-strong)' }}
+                />
+                <span className="mini-label" style={{ marginBottom: 0, marginTop: '2px' }}>Mute Sound Effects</span>
+              </label>
               <label className="final-question-editor">
                 <span className="mini-label">Opening Explosion Audio URL</span>
                 <input value={settings.openingExplosionAudioSrc} onChange={e => updateSettings({ openingExplosionAudioSrc: e.target.value })} />
