@@ -32,22 +32,34 @@ export default function PlayerScreen() {
   const [submitted, setSubmitted] = useState(false);
   const [lastQuestionId, setLastQuestionId] = useState(null);
 
-  // Auto-reset form when a new question starts
+  // Auto-reset form when a new question starts or restore answer on reconnect
   useEffect(() => {
     if (state?.activeQuestion) {
       const q = state.activeQuestion;
       const qId = q.type === 'board' ? `board-${q.categoryIndex}-${q.questionIndex}` : `final-${q.questionIndex}`;
+      
+      const existingAnswer = state.submittedAnswers?.[teamId];
+
       if (qId !== lastQuestionId) {
-        setAnswer('');
-        setSubmitted(false);
+        if (existingAnswer) {
+          setAnswer(existingAnswer);
+          setSubmitted(true);
+        } else {
+          setAnswer('');
+          setSubmitted(false);
+        }
         setLastQuestionId(qId);
+      } else if (existingAnswer && !submitted) {
+        // If we reconnected or received a state update saying we already submitted
+        setAnswer(existingAnswer);
+        setSubmitted(true);
       }
     } else {
       setLastQuestionId(null);
       setAnswer('');
       setSubmitted(false);
     }
-  }, [state?.activeQuestion, lastQuestionId]);
+  }, [state?.activeQuestion, state?.submittedAnswers, lastQuestionId, teamId, submitted]);
 
   const handleSelectTeam = (id) => {
     if (id === '') {

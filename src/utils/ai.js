@@ -3,7 +3,7 @@ export async function verifyTriviaAnswer(apiKey, questionPrompt, officialAnswer,
     throw new Error('API Key is missing. Please configure it in the Settings panel.');
   }
 
-  const systemPrompt = `You are an impartial trivia judge. The question is: "${questionPrompt}". The official answer is: "${officialAnswer}". A team has guessed: "${teamGuess}". Is the team's guess correct, partially correct, or incorrect? Start your response with exactly one of those three phrases. Then, provide a very brief 1-2 sentence explanation for your ruling.`;
+  const systemPrompt = `You are an impartial trivia judge. The question is: "${questionPrompt}". The official answer is: "${officialAnswer}". A team has guessed: "${teamGuess}". Is the team's guess correct, partially correct, or incorrect? Start your response with exactly one of those three phrases. Be lenient on spelling errors and typos unless the question is explicitly testing spelling. Then, provide a very brief 1-2 sentence explanation for your ruling.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
