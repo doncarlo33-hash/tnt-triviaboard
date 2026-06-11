@@ -61,6 +61,13 @@ export default function PlayerScreen() {
     localStorage.setItem('trivia_player_teamId', id);
   };
 
+  // Auto-claim team on reconnect
+  useEffect(() => {
+    if (teamId && status === 'connected') {
+      sendMessage({ type: 'CLAIM_TEAM', teamId, playerId });
+    }
+  }, [teamId, status]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!answer.trim() || !teamId) return;
