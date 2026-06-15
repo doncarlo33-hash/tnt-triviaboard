@@ -39,7 +39,9 @@ export default function App() {
   const [showHostQR, setShowHostQR] = useState(false);
   const undoStackRef = useRef([]);
 
-  function updateState(updater) {
+
+
+  const updateState = useCallback((updater) => {
     setState((current) => {
       const clonedCurrent = structuredClone(current);
       const nextState = updater(clonedCurrent);
@@ -49,7 +51,7 @@ export default function App() {
       }
       return nextState || clonedCurrent;
     });
-  }
+  }, []);
 
   // WebRTC Remote Host
   const handleIncomingMessage = useCallback((msg) => {
@@ -81,6 +83,7 @@ export default function App() {
       });
     }
   }, [updateState]);
+
 
   const { roomId, connectionCount } = useRemoteHost(state, handleIncomingMessage);
   const [broadcastRoomId, setBroadcastRoomId] = useState(null);
@@ -219,17 +222,7 @@ export default function App() {
     });
   }, [currentCategoryIndex]);
 
-  function updateState(updater) {
-    setState((current) => {
-      const clonedCurrent = structuredClone(current);
-      const nextState = updater(clonedCurrent);
-      undoStackRef.current.push(current);
-      if (undoStackRef.current.length > 20) {
-        undoStackRef.current.shift();
-      }
-      return nextState || clonedCurrent;
-    });
-  }
+
 
   function handleUndo() {
     if (undoStackRef.current.length > 0) {
@@ -982,7 +975,7 @@ export default function App() {
     return (
       <ErrorBoundary>
         <BackgroundEffects />
-        <DisplayScreen state={state} setState={setState} updateState={updateState} hostRoomId={roomId || broadcastRoomId} />
+        <DisplayScreen state={state} setState={setState} hostRoomId={roomId || broadcastRoomId} />
       </ErrorBoundary>
     );
   }
@@ -1110,7 +1103,7 @@ export default function App() {
 
           {adminView !== "scoreboard" && (
           <aside className="stack">
-            {adminView !== "scoreboard" && (
+            {(
             <section className="panel">
               <div className="panel-header">
                 <div>
@@ -1229,7 +1222,7 @@ export default function App() {
                 <QuestionCard {...activeQuestion} teams={rankedTeams} />
               )}
             </section>
-            )}
+            )}  
 
             <section className="panel doubletap-sidebar-panel">
               <div className="panel-header">

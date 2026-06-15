@@ -123,7 +123,7 @@ export default function SettingsPanel({ updateState }) {
         
         <div className="settings-group">
           <h3>Display Preferences</h3>
-          <div style={{ marginTop: '12px' }}>
+          <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input 
                 type="checkbox" 
@@ -131,6 +131,19 @@ export default function SettingsPanel({ updateState }) {
                 onChange={e => updateSettings({ hidePlayerQR: e.target.checked })} 
               />
               Hide Player QR Code on Audience Display
+            </label>
+            
+            <label className="final-question-editor" style={{ maxWidth: '400px' }}>
+              <span className="mini-label">Local Network IP Override (for PWA)</span>
+              <p style={{ color: 'var(--ink-soft)', fontSize: '0.8rem', margin: '4px 0 8px', lineHeight: '1.4' }}>
+                If you installed the game as a PWA from localhost, enter your computer's local IP address (e.g., 192.168.1.5) here so players can still connect via the QR code.
+              </p>
+              <input 
+                type="text" 
+                value={settings.hostIpOverride || ''} 
+                onChange={e => updateSettings({ hostIpOverride: e.target.value })} 
+                placeholder="e.g. 192.168.1.5" 
+              />
             </label>
           </div>
         </div>

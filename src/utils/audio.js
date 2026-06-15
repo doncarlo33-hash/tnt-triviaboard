@@ -1,4 +1,4 @@
-import { Howl, Howler } from 'howler';
+import { Howl } from 'howler';
 import { useSettings } from '../settingsStore.js';
 
 import { isIndexedDbMediaRef, getMediaRecord } from './media.js';
@@ -94,10 +94,6 @@ class AudioEngine {
     if (sound) {
       sound.stop();
     }
-  }
-  
-  stopAll() {
-    Howler.stop();
   }
 }
 

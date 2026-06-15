@@ -1,4 +1,4 @@
-import { memo } from 'react';
+
 import { createTeam } from '../utils/state.js';
 import { updateTeamValue, updateTeamRound, updateTeamDoubleTap } from '../utils/teams.js';
 import { numberOrZero } from '../utils/helpers.js';
@@ -131,6 +131,7 @@ function areTeamsEqual(prevProps, nextProps) {
   return (
     prevProps.rankIndex === nextProps.rankIndex &&
     prevProps.currentCategoryIndex === nextProps.currentCategoryIndex &&
+    prevProps.teamClaim === nextProps.teamClaim &&
     p.id === n.id &&
     p.name === n.name &&
     p.tb === n.tb &&

@@ -287,12 +287,7 @@ export default function BackgroundEffects() {
           }
 
           ctx.beginPath();
-          if (theme === 'theme-thanksgiving') {
-            // Draw oval/leaf shape
-            ctx.ellipse(p.x, p.y, Math.max(1, p.currentRadius || p.radius), p.radius, Math.sin(time + p.life), 0, Math.PI * 2);
-          } else {
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          }
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
           ctx.fillStyle = fillStyle;
           ctx.fill();
         });

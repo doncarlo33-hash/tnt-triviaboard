@@ -24,6 +24,7 @@ const defaultSettings = {
   aiApiKey: '',
   muteSoundEffects: false,
   hidePlayerQR: false,
+  hostIpOverride: '',
 };
 
 function loadSettings() {

@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import AnimatedNumber from './AnimatedNumber.jsx';
 import { FINAL_ROUND_INSTRUCTIONS, VENMO_QR_SRC } from '../config.js';
 import { getPostGameRecap } from '../utils/helpers.js';
+import { useSettings } from '../settingsStore.js';
 
 export function FinalRoundInstructions() {
   return (
@@ -43,18 +44,7 @@ export function GameRulesView() {
   );
 }
 
-export function SocialMediaQR() {
-  return (
-    <aside className="social-media-banner" style={{ display: 'flex', gap: '20px', justifyContent: 'center', alignItems: 'center', background: 'var(--panel-bg)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
-      <div className="social-qr-wrap">
-        <img src="/qr-facebook.png" alt="Scan to find us on Facebook" style={{ width: '180px', height: '180px', objectFit: 'contain', borderRadius: '12px' }} />
-      </div>
-      <div className="social-qr-wrap">
-        <img src="/qr-instagram.png" alt="Scan to find us on Instagram" style={{ width: '180px', height: '180px', objectFit: 'contain', borderRadius: '12px' }} />
-      </div>
-    </aside>
-  );
-}
+
 
 export function SocialMediaView() {
   return (
@@ -208,35 +198,7 @@ export function PostGameRecap({ teams }) {
   );
 }
 
-export function AwardMomentOverlay({ awardMoment }) {
-  const recipients = Array.isArray(awardMoment.recipients) ? awardMoment.recipients : [];
-  const featuredRecipients = recipients.slice(0, 6);
-  const extraCount = Math.max(0, recipients.length - featuredRecipients.length);
 
-  return (
-    <div className="award-moment-overlay" key={awardMoment.id} aria-live="polite">
-      <div className="award-shockwave" />
-      <div className="award-moment-card">
-        <span className="award-moment-label">Points Awarded</span>
-        <strong>{awardMoment.title}</strong>
-        <div className="award-moment-list">
-          {featuredRecipients.map((recipient) => (
-            <div className="award-moment-row" key={`${awardMoment.id}-${recipient.teamId}`}>
-              <span>{recipient.name}</span>
-              <b>+{recipient.delta}</b>
-            </div>
-          ))}
-          {extraCount > 0 && (
-            <div className="award-moment-row">
-              <span>{extraCount} more teams</span>
-              <b>scored</b>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function ScrambledText({ text, delay = 0 }) {
   const [display, setDisplay] = useState(text.replace(/[A-Za-z0-9]/g, '-'));
@@ -317,11 +279,20 @@ export function FinalCategoriesView({ questions }) {
 }
 
 export function PlayerJoinQR({ roomId }) {
+  const { settings } = useSettings();
   if (!roomId) return null;
+  
   const url = new URL(window.location.href);
+  
+  if (settings.hostIpOverride) {
+    url.hostname = settings.hostIpOverride;
+  }
+  
   url.searchParams.set('screen', 'player');
   url.searchParams.set('room', roomId);
   const joinUrl = url.toString();
+
+  const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !settings.hostIpOverride;
 
   return (
     <div className="player-join-qr" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--panel-bg)', padding: '30px', borderRadius: '16px', border: '2px solid var(--accent-strong)', boxShadow: '0 10px 40px rgba(0,0,0,0.5)' }}>
@@ -330,6 +301,15 @@ export function PlayerJoinQR({ roomId }) {
         <QRCodeSVG value={joinUrl} size={250} />
       </div>
       <p style={{ marginTop: '20px', fontSize: '1.2rem', color: 'var(--text-muted)' }}>Room ID: <strong style={{ color: '#fff', letterSpacing: '2px' }}>{roomId}</strong></p>
+      {isLocalhost && (
+        <div style={{ marginTop: '20px', padding: '12px', background: 'rgba(255, 68, 68, 0.1)', border: '1px solid #ff4444', borderRadius: '8px', maxWidth: '300px', textAlign: 'center' }}>
+          <p style={{ color: '#ff4444', fontSize: '0.9rem', margin: 0, lineHeight: '1.4' }}>
+            <strong>Warning:</strong> You are accessing the game via localhost. 
+            Phones cannot connect to this QR code. 
+            Please open the game using your computer's <strong>Network IP address</strong> instead.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
