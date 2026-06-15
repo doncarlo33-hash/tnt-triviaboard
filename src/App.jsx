@@ -73,9 +73,6 @@ export default function App() {
     }
     else if (msg && msg.type === 'SUBMIT_ANSWER' && msg.teamId) {
       updateState(draft => {
-        if (draft.teamClaims && draft.teamClaims[msg.teamId] && draft.teamClaims[msg.teamId] !== msg.playerId) {
-          return;
-        }
         if (!draft.submittedAnswers) {
           draft.submittedAnswers = {};
         }
