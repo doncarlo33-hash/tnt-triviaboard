@@ -98,6 +98,13 @@ export default function App() {
     return () => window.clearTimeout(timeoutId);
   }, [state]);
 
+  // Persist roomId to localStorage so the display screen can pick it up immediately
+  useEffect(() => {
+    if (roomId && !isDisplayScreen && !isPlayerScreen) {
+      window.localStorage.setItem('trivia_active_room_id', roomId);
+    }
+  }, [roomId, isDisplayScreen, isPlayerScreen]);
+
   // Fast cross-tab sync for display window using BroadcastChannel
   const lastBroadcastTimeRef = useRef(0);
   
@@ -141,6 +148,10 @@ export default function App() {
           if (rawSettings) {
             const { theme } = JSON.parse(rawSettings);
             if (theme) applyThemeToBody(theme);
+          }
+          const storedRoomId = window.localStorage.getItem('trivia_active_room_id');
+          if (storedRoomId) {
+            setBroadcastRoomId(prev => storedRoomId !== prev ? storedRoomId : prev);
           }
         } catch (e) {}
       }, 1000);
