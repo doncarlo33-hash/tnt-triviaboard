@@ -157,8 +157,9 @@ export default function SettingsPanel({ updateState }) {
             <label className="final-question-editor">
               <span className="mini-label">Google Gemini API Key</span>
               <input 
-                type="text" 
-                autoComplete="off"
+                type="password" 
+                autoComplete="new-password"
+                name="aiApiKey-custom"
                 data-lpignore="true"
                 data-1p-ignore="true"
                 value={settings.aiApiKey || ''} 

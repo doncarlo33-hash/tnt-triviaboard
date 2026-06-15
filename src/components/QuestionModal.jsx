@@ -193,17 +193,19 @@ export function AwardPanel({ title, buttonLabel, buttonClass, teams, question, s
           <div className="selection-actions">
             <button type="button" className="tiny-button" onClick={selectAllTeams}>Select All</button>
             <button type="button" className="tiny-button" onClick={clearSelection}>Clear</button>
-            {Object.keys(submittedAnswers).length > 0 && (
-              <button 
-                type="button" 
-                className="tiny-button" 
-                onClick={handleAutoGrade}
-                disabled={isAutoGrading}
-                style={{ color: '#ffea00', borderColor: 'rgba(255,234,0,0.5)' }}
-              >
-                {isAutoGrading ? "Grading..." : "Auto-Grade"} ✨
-              </button>
-            )}
+            <button 
+              type="button" 
+              className="tiny-button" 
+              onClick={handleAutoGrade}
+              disabled={isAutoGrading || Object.keys(submittedAnswers).length === 0}
+              style={{ 
+                color: Object.keys(submittedAnswers).length === 0 ? 'rgba(255,234,0,0.4)' : '#ffea00', 
+                borderColor: Object.keys(submittedAnswers).length === 0 ? 'rgba(255,234,0,0.2)' : 'rgba(255,234,0,0.5)',
+                pointerEvents: Object.keys(submittedAnswers).length === 0 ? 'none' : 'auto'
+              }}
+            >
+              {isAutoGrading ? "Grading..." : Object.keys(submittedAnswers).length === 0 ? "Waiting for answers" : "Auto-Grade ✨"}
+            </button>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>

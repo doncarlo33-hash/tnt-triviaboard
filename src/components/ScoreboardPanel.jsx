@@ -103,7 +103,7 @@ function TeamRowComponent({ team, rankIndex, currentCategoryIndex, setState, upd
               })}
               title="Kick connected device"
             >
-              Kick Device
+              Kick Player
             </button>
           )}
           <button
