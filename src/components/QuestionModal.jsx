@@ -163,7 +163,9 @@ export function AwardPanel({ title, buttonLabel, buttonClass, teams, question, s
       const results = await Promise.all(
         answersToGrade.map(async (item) => {
           const verdict = await verifyTriviaAnswer(settings.aiApiKey, question.text, question.answer, item.answer);
-          const isCorrect = verdict.toLowerCase().includes('correct') && !verdict.toLowerCase().startsWith('incorrect');
+          const cleanVerdict = verdict.toLowerCase().replace(/[^a-z]/g, '');
+          const isCorrect = cleanVerdict.startsWith('correct') || cleanVerdict.startsWith('partiallycorrect');
+          console.log(`Auto-grade team ${item.id}: "${item.answer}" -> ${verdict} (isCorrect: ${isCorrect})`);
           return { id: item.id, isCorrect };
         })
       );
@@ -172,7 +174,8 @@ export function AwardPanel({ title, buttonLabel, buttonClass, teams, question, s
       const newSelectedIds = [...new Set([...selectedTeamIds, ...correctIds])];
       setAwardSelection(newSelectedIds);
     } catch (err) {
-      console.error(err);
+      console.error("Auto-grade error:", err);
+      alert('Auto-grade failed: ' + err.message);
     } finally {
       setIsAutoGrading(false);
     }
