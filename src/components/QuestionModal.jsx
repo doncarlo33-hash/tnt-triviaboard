@@ -162,15 +162,9 @@ export function AwardPanel({ title, buttonLabel, buttonClass, teams, question, s
     try {
       const results = await Promise.all(
         answersToGrade.map(async (item) => {
-          try {
-            const verdict = await verifyTriviaAnswer(settings.aiApiKey, question.text, question.answer, item.answer);
-            // Consider "correct" or "partially correct" as valid if "incorrect" is not explicitly stated as the primary ruling.
-            // A simpler check: if it says "correct" or "partially correct" and NOT "incorrect".
-            const isCorrect = verdict.toLowerCase().includes('correct') && !verdict.toLowerCase().startsWith('incorrect');
-            return { id: item.id, isCorrect };
-          } catch (e) {
-            return { id: item.id, isCorrect: false };
-          }
+          const verdict = await verifyTriviaAnswer(settings.aiApiKey, question.text, question.answer, item.answer);
+          const isCorrect = verdict.toLowerCase().includes('correct') && !verdict.toLowerCase().startsWith('incorrect');
+          return { id: item.id, isCorrect };
         })
       );
 
