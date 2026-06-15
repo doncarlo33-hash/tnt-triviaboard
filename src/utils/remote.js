@@ -64,6 +64,11 @@ async function relayAvailable() {
       cache: 'no-store',
       signal: AbortSignal.timeout(1500),
     });
+    // If it returns HTML (like a Vercel catch-all SPA route), the relay is NOT actually there.
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      return false;
+    }
     // 204 = no state yet, but the route exists
     return res.status === 200 || res.status === 204;
   } catch {
@@ -307,13 +312,18 @@ export function usePlayerConnection(targetRoomId) {
   const { remoteState, status, connRef } = useRemoteClient(targetRoomId);
 
   const sendMessage = useCallback((msg) => {
-    // Try PeerJS first (lower latency)
-    if (connRef.current && connRef.current.open) {
-      connRef.current.send(JSON.stringify(msg));
-      return;
+    let sent = false;
+    // Try PeerJS first
+    if (connRef.current) {
+      try {
+        connRef.current.send(JSON.stringify(msg));
+        sent = true;
+      } catch (e) {
+        console.warn("PeerJS send failed", e);
+      }
     }
-    // Fall back to relay
-    if (targetRoomId) {
+    // Fall back to relay if PeerJS couldn't send AND relay is active
+    if (!sent && targetRoomId) {
       relaySendMessage(targetRoomId, msg);
     }
   }, [targetRoomId, connRef]);
