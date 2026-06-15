@@ -80,7 +80,7 @@ async function relayAvailable() {
 // useRemoteHost  –  admin / host side
 // ---------------------------------------------------------------------------
 
-export function useRemoteHost(state, onMessage) {
+export function useRemoteHost(state, onMessage, enabled = true) {
   const [roomId, setRoomId] = useState(null);
   const [connections, setConnections] = useState([]);
   const peerRef = useRef(null);
@@ -89,6 +89,7 @@ export function useRemoteHost(state, onMessage) {
 
   // --- PeerJS (kept for production / when relay is unavailable) ---
   useEffect(() => {
+    if (!enabled) return;
     const id = Math.random().toString(36).substring(2, 8).toUpperCase();
     const fullId = `tnt-${id}`;
 

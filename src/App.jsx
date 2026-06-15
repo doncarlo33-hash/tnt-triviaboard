@@ -82,7 +82,7 @@ export default function App() {
   }, [updateState]);
 
 
-  const { roomId, connectionCount } = useRemoteHost(state, handleIncomingMessage);
+  const { roomId, connectionCount } = useRemoteHost(state, handleIncomingMessage, !isDisplayScreen && !isPlayerScreen);
   const [broadcastRoomId, setBroadcastRoomId] = useState(null);
 
   // Persist game state to localStorage (debounced)
@@ -158,7 +158,7 @@ export default function App() {
         if (channel) channel.close();
       };
     }
-  }, [isDisplayScreen, state]);
+  }, [isDisplayScreen, state, roomId]);
 
   // Apply theme class to body whenever settings change, and push to display window
   useEffect(() => {
