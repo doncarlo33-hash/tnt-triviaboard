@@ -3,7 +3,7 @@ import { LabeledInput, LabeledTextarea } from './FormControls.jsx';
 import { QuestionTimer } from './QuestionCard.jsx';
 import RoundController from './RoundController.jsx';
 import { useSettings } from '../settingsStore.js';
-import { verifyTriviaAnswer } from '../utils/ai.js';
+import { verifyTriviaAnswersBatch } from '../utils/ai.js';
 
 export default function QuestionModal({ state, modalQuestion, closeModal, updateState, applyBoardScore, setRevealAnswer, setShowTeams, setFullscreenImage, playActiveQuestionMedia, setAwardSelectedTeamIds, setRoundStage, restartQuestionTimer, showLeaderboardOnDisplay, showBoardOnDisplay }) {
   const { categoryIndex, questionIndex } = modalQuestion;
@@ -160,15 +160,7 @@ export function AwardPanel({ title, buttonLabel, buttonClass, teams, question, s
 
     setIsAutoGrading(true);
     try {
-      const results = await Promise.all(
-        answersToGrade.map(async (item) => {
-          const verdict = await verifyTriviaAnswer(settings.aiApiKey, question.text, question.answer, item.answer);
-          const cleanVerdict = verdict.toLowerCase().replace(/[^a-z]/g, '');
-          const isCorrect = cleanVerdict.startsWith('correct') || cleanVerdict.startsWith('partiallycorrect');
-          console.log(`Auto-grade team ${item.id}: "${item.answer}" -> ${verdict} (isCorrect: ${isCorrect})`);
-          return { id: item.id, isCorrect };
-        })
-      );
+      const results = await verifyTriviaAnswersBatch(settings.aiApiKey, question.text, question.answer, answersToGrade);
 
       const correctIds = results.filter(r => r.isCorrect).map(r => r.id);
       const newSelectedIds = [...new Set([...selectedTeamIds, ...correctIds])];
