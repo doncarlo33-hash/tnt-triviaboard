@@ -1,9 +1,9 @@
-
+import React, { memo } from 'react';
 import { createTeam } from '../utils/state.js';
 import { updateTeamValue, updateTeamRound, updateTeamDoubleTap } from '../utils/teams.js';
 import { numberOrZero } from '../utils/helpers.js';
 
-import React from 'react';
+
 export default React.memo(function ScoreboardPanel({ teams, setState, updateState, currentCategoryIndex, teamClaims = {}, fullscreen = false }) {
   return (
     <section className={`panel scoreboard-panel${fullscreen ? " scoreboard-panel-full" : ""}`}>
